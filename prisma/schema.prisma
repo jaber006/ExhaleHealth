@@ -1,0 +1,71 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Consultation {
+  id                   String   @id @default(cuid())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  firstName            String
+  lastName             String
+  email                String
+  phone                String
+  dateOfBirth          DateTime
+  preferredCallTime    DateTime
+  smokingStatus        String   // "smoker", "vaper", "both"
+  yearsUsing           String
+  dailyUsage           String
+  previousQuitAttempts String?
+  currentNRT           String?
+  medicalConditions    String?
+  status               String   @default("pending")
+  paymentStatus        String   @default("unpaid")
+  paymentIntentId      String?
+  notes                String?
+  quitPlan             String?
+}
+
+model Product {
+  id                   String   @id @default(cuid())
+  name                 String
+  description          String
+  price                Float
+  category             String   // "patches", "gum", "lozenges", "spray", "inhaler", "vape"
+  imageUrl             String?
+  inStock              Boolean  @default(true)
+  requiresConsultation Boolean  @default(false)
+  createdAt            DateTime @default(now())
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  email           String
+  firstName       String
+  lastName        String
+  phone           String
+  shippingAddress String
+  items           String   // JSON string of items
+  total           Float
+  status          String   @default("pending")
+  paymentIntentId String?
+  trackingNumber  String?
+}
+
+model Subscription {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  email        String
+  firstName    String
+  lastName     String
+  plan         String    // "nrt-monthly", "vape-stepdown", "full-quit"
+  status       String    @default("active")
+  stripeSubId  String?
+  nextDelivery DateTime?
+}
