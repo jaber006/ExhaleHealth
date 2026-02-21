@@ -94,6 +94,7 @@ export default function RegisterPage() {
           data: {
             first_name: firstName,
             last_name: lastName,
+            date_of_birth: dob,
           },
         },
       })
@@ -110,10 +111,11 @@ export default function RegisterPage() {
           last_name: lastName,
           date_of_birth: dob,
           phone,
-          street_address: street,
-          suburb,
-          state,
-          postcode,
+          email,
+          shipping_street: street,
+          shipping_suburb: suburb,
+          shipping_state: state,
+          shipping_postcode: postcode,
         })
 
       if (profileError) throw profileError

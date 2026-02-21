@@ -1,435 +1,703 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { formatPrice } from '@/lib/products'
+import {
+  ClipboardList,
+  ShoppingBag,
+  Users,
+  PackageCheck,
+  ChevronRight,
+  Check,
+  X,
+  AlertTriangle,
+  LogOut,
+  Loader2,
+  MessageSquare,
+} from 'lucide-react'
 
-interface Consultation {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  preferredCallTime: string;
-  smokingStatus: string;
-  yearsUsing: string;
-  dailyUsage: string;
-  previousQuitAttempts: string;
-  currentNRT: string;
-  medicalConditions: string;
-  status: string;
-  paymentStatus: string;
-  createdAt: string;
+type Tab = 'dashboard' | 'assessments' | 'orders' | 'products' | 'customers'
+
+interface Assessment {
+  id: string
+  user_id: string
+  smoking_years: string
+  cigarettes_per_day: string
+  previous_quit_attempts: string
+  current_nicotine_use: string
+  health_conditions: string[]
+  medications: string
+  pregnancy_status: string
+  cardiovascular_conditions: boolean
+  quit_motivation: string
+  flavour_preference: string
+  pharmacist_notes: string | null
+  status: string
+  decline_reason: string | null
+  created_at: string
+  profiles?: {
+    first_name: string
+    last_name: string
+    date_of_birth: string
+    phone: string
+    email?: string
+  }
 }
 
-// Placeholder data
-const mockConsultations: Consultation[] = [
-  {
-    id: "cons_001",
-    firstName: "Michael",
-    lastName: "Roberts",
-    email: "michael.r@example.com",
-    phone: "0412 345 678",
-    preferredCallTime: "2026-02-22T10:00:00",
-    smokingStatus: "smoker",
-    yearsUsing: "10-20",
-    dailyUsage: "20-30",
-    previousQuitAttempts: "Tried patches 3 years ago",
-    currentNRT: "None",
-    medicalConditions: "None",
-    status: "pending",
-    paymentStatus: "paid",
-    createdAt: "2026-02-21T08:30:00",
-  },
-  {
-    id: "cons_002",
-    firstName: "Jessica",
-    lastName: "Liu",
-    email: "jess.l@example.com",
-    phone: "0423 456 789",
-    preferredCallTime: "2026-02-22T14:00:00",
-    smokingStatus: "vape",
-    yearsUsing: "1-5",
-    dailyUsage: "10-20",
-    previousQuitAttempts: "Cold turkey once, lasted 2 weeks",
-    currentNRT: "None",
-    medicalConditions: "Mild asthma",
-    status: "scheduled",
-    paymentStatus: "paid",
-    createdAt: "2026-02-20T15:45:00",
-  },
-  {
-    id: "cons_003",
-    firstName: "David",
-    lastName: "Williams",
-    email: "david.w@example.com",
-    phone: "0434 567 890",
-    preferredCallTime: "2026-02-23T09:00:00",
-    smokingStatus: "both",
-    yearsUsing: "5-10",
-    dailyUsage: "10-20",
-    previousQuitAttempts: "Nicorette gum, Champix",
-    currentNRT: "Nicorette patches 21mg",
-    medicalConditions: "High blood pressure, on amlodipine",
-    status: "completed",
-    paymentStatus: "paid",
-    createdAt: "2026-02-18T11:20:00",
-  },
-];
+interface Order {
+  id: string
+  user_id: string
+  status: string
+  subtotal: number
+  shipping_cost: number
+  total: number
+  tracking_number: string | null
+  pharmacist_notes: string | null
+  created_at: string
+  shipping_address: {
+    street: string
+    suburb: string
+    state: string
+    postcode: string
+  }
+  profiles?: {
+    first_name: string
+    last_name: string
+    phone: string
+  }
+  order_items?: {
+    id: string
+    quantity: number
+    unit_price: number
+    products?: {
+      name: string
+      brand: string
+    }
+  }[]
+}
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [selectedConsultation, setSelectedConsultation] =
-    useState<Consultation | null>(null);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<Tab>('dashboard')
+  const [assessments, setAssessments] = useState<Assessment[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [pharmacistNotes, setPharmacistNotes] = useState('')
+  const [declineReason, setDeclineReason] = useState('')
+  const [stats, setStats] = useState({ assessments: 0, pendingAssessments: 0, orders: 0, pendingOrders: 0 })
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In production, this would verify against ADMIN_PASSWORD env var via API
-    if (password === "admin") {
-      setIsAuthenticated(true);
-      setError("");
-    } else {
-      setError("Invalid password. Try 'admin' for demo.");
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  async function checkAuth() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      setLoading(false)
+      return
     }
-  };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-warm-white flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl border border-sage/10 p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="text-2xl font-light tracking-tight text-primary">
-                exhale
-              </span>
-              <svg
-                width="20"
-                height="14"
-                viewBox="0 0 24 16"
-                fill="none"
-                className="text-sage"
-              >
-                <path
-                  d="M1 8C4 3 8 13 12 8C16 3 20 13 23 8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-charcoal">Admin Portal</h1>
-            <p className="text-charcoal/60 text-sm mt-1">
-              Enter your admin password to continue
-            </p>
-          </div>
+    setIsAuthenticated(true)
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-1.5">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-sage/20 bg-warm-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                placeholder="Enter admin password"
-              />
-            </div>
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary-dark text-white font-semibold px-8 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-primary/20"
-            >
-              Sign In
-            </button>
-          </form>
-        </div>
-      </div>
-    );
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.is_admin) {
+      setIsAdmin(true)
+      await loadData()
+    }
+    setLoading(false)
   }
 
-  const filteredConsultations =
-    statusFilter === "all"
-      ? mockConsultations
-      : mockConsultations.filter((c) => c.status === statusFilter);
+  async function loadData() {
+    const supabase = createClient()
 
-  const stats = {
-    total: mockConsultations.length,
-    pending: mockConsultations.filter((c) => c.status === "pending").length,
-    scheduled: mockConsultations.filter((c) => c.status === "scheduled").length,
-    completed: mockConsultations.filter((c) => c.status === "completed").length,
-  };
+    // Load assessments
+    const { data: assessmentData } = await supabase
+      .from('assessments')
+      .select('*, profiles(first_name, last_name, date_of_birth, phone)')
+      .order('created_at', { ascending: false })
+
+    if (assessmentData) setAssessments(assessmentData as Assessment[])
+
+    // Load orders
+    const { data: orderData } = await supabase
+      .from('orders')
+      .select('*, profiles(first_name, last_name, phone), order_items(id, quantity, unit_price, products(name, brand))')
+      .order('created_at', { ascending: false })
+
+    if (orderData) setOrders(orderData as Order[])
+
+    // Stats
+    const pendingAssessments = assessmentData?.filter(a => a.status === 'submitted').length || 0
+    const pendingOrders = orderData?.filter(o => o.status === 'pending' || o.status === 'pharmacist_review').length || 0
+
+    setStats({
+      assessments: assessmentData?.length || 0,
+      pendingAssessments,
+      orders: orderData?.length || 0,
+      pendingOrders,
+    })
+  }
+
+  async function updateAssessmentStatus(id: string, status: string) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const updateData: Record<string, unknown> = {
+      status,
+      reviewed_by: user?.id,
+      reviewed_at: new Date().toISOString(),
+    }
+
+    if (pharmacistNotes) updateData.pharmacist_notes = pharmacistNotes
+    if (status === 'declined' && declineReason) updateData.decline_reason = declineReason
+
+    await supabase.from('assessments').update(updateData).eq('id', id)
+    
+    setSelectedAssessment(null)
+    setPharmacistNotes('')
+    setDeclineReason('')
+    await loadData()
+  }
+
+  async function updateOrderStatus(id: string, status: string, trackingNumber?: string) {
+    const supabase = createClient()
+    const updateData: Record<string, unknown> = { status }
+    if (trackingNumber) updateData.tracking_number = trackingNumber
+    if (status === 'shipped') updateData.shipped_at = new Date().toISOString()
+    if (pharmacistNotes) updateData.pharmacist_notes = pharmacistNotes
+
+    await supabase.from('orders').update(updateData).eq('id', id)
+    
+    setSelectedOrder(null)
+    setPharmacistNotes('')
+    await loadData()
+  }
+
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    setIsAuthenticated(false)
+    setIsAdmin(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0D6B5E]" />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-light text-gray-900 mb-4">Admin Access Required</h1>
+          <p className="text-gray-500 mb-6">
+            {!isAuthenticated
+              ? 'Please sign in with your admin account to access this page.'
+              : 'Your account does not have admin privileges.'}
+          </p>
+          <a
+            href="/login?redirect=/admin"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0D6B5E] text-white font-medium hover:bg-[#095C50] transition-all"
+          >
+            Sign In <ChevronRight className="w-4 h-4" />
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-warm-white">
-      {/* Admin Header */}
-      <div className="bg-white border-b border-sage/10 px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xl font-light tracking-tight text-primary">
-              exhale
-            </span>
-            <span className="text-charcoal/40">|</span>
-            <span className="text-sm font-medium text-charcoal/60">
-              Admin Portal
-            </span>
+            <span className="text-xl font-light text-[#0D6B5E]">exhale</span>
+            <span className="text-gray-300">|</span>
+            <span className="text-sm font-medium text-gray-500">Pharmacist Dashboard</span>
           </div>
           <button
-            onClick={() => setIsAuthenticated(false)}
-            className="text-sm text-charcoal/60 hover:text-primary transition-colors"
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
-            Sign Out
+            <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Total", value: stats.total, colour: "bg-charcoal/5" },
-            {
-              label: "Pending",
-              value: stats.pending,
-              colour: "bg-amber-50",
-            },
-            {
-              label: "Scheduled",
-              value: stats.scheduled,
-              colour: "bg-blue-50",
-            },
-            {
-              label: "Completed",
-              value: stats.completed,
-              colour: "bg-primary/5",
-            },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className={`${s.colour} rounded-xl p-5 border border-sage/10`}
-            >
-              <div className="text-3xl font-bold text-charcoal">{s.value}</div>
-              <div className="text-charcoal/60 text-sm">{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filter tabs */}
-        <div className="flex gap-2 mb-6">
-          {["all", "pending", "scheduled", "completed"].map((f) => (
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+          {([
+            { id: 'dashboard' as Tab, label: 'Dashboard', icon: PackageCheck },
+            { id: 'assessments' as Tab, label: `Assessments${stats.pendingAssessments ? ` (${stats.pendingAssessments})` : ''}`, icon: ClipboardList },
+            { id: 'orders' as Tab, label: `Orders${stats.pendingOrders ? ` (${stats.pendingOrders})` : ''}`, icon: ShoppingBag },
+            { id: 'customers' as Tab, label: 'Customers', icon: Users },
+          ]).map(t => (
             <button
-              key={f}
-              onClick={() => setStatusFilter(f)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all capitalize ${
-                statusFilter === f
-                  ? "bg-primary text-white"
-                  : "bg-white text-charcoal/60 border border-sage/20 hover:bg-sage/10"
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                tab === t.id
+                  ? 'bg-[#0D6B5E] text-white'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-[#0D6B5E]/40'
               }`}
             >
-              {f}
+              <t.icon className="w-4 h-4" /> {t.label}
             </button>
           ))}
         </div>
 
-        {/* Consultations list */}
-        <div className="bg-white rounded-2xl border border-sage/10 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-sage/10">
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-charcoal/60">
-                    Patient
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-charcoal/60">
-                    Contact
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-charcoal/60">
-                    Type
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-charcoal/60">
-                    Call Time
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-charcoal/60">
-                    Status
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-charcoal/60">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredConsultations.map((c) => (
-                  <tr
-                    key={c.id}
-                    className="border-b border-sage/5 hover:bg-sage/5 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-charcoal">
-                        {c.firstName} {c.lastName}
-                      </div>
-                      <div className="text-xs text-charcoal/50">{c.id}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-charcoal">{c.email}</div>
-                      <div className="text-xs text-charcoal/50">{c.phone}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="capitalize text-sm text-charcoal/70">
-                        {c.smokingStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-charcoal/70">
-                      {new Date(c.preferredCallTime).toLocaleString("en-AU", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                          c.status === "pending"
-                            ? "bg-amber-100 text-amber-800"
-                            : c.status === "scheduled"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-primary/10 text-primary"
-                        }`}
-                      >
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => setSelectedConsultation(c)}
-                        className="text-primary hover:text-primary-dark text-sm font-medium"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {filteredConsultations.length === 0 && (
-            <div className="text-center py-12 text-charcoal/40">
-              No consultations found.
+        {/* Dashboard */}
+        {tab === 'dashboard' && (
+          <div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {[
+                { label: 'Pending Assessments', value: stats.pendingAssessments, color: 'bg-amber-50 text-amber-700' },
+                { label: 'Total Assessments', value: stats.assessments, color: 'bg-blue-50 text-blue-700' },
+                { label: 'Pending Orders', value: stats.pendingOrders, color: 'bg-orange-50 text-orange-700' },
+                { label: 'Total Orders', value: stats.orders, color: 'bg-green-50 text-green-700' },
+              ].map(s => (
+                <div key={s.label} className={`${s.color} rounded-xl p-5`}>
+                  <div className="text-3xl font-bold">{s.value}</div>
+                  <div className="text-sm mt-1 opacity-80">{s.label}</div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+
+            {/* Recent activity */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-[#0D6B5E]" />
+                  Recent Assessments
+                </h3>
+                {assessments.slice(0, 5).map(a => (
+                  <div key={a.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                    <div>
+                      <p className="text-sm font-medium">{a.profiles?.first_name} {a.profiles?.last_name}</p>
+                      <p className="text-xs text-gray-400">{new Date(a.created_at).toLocaleDateString('en-AU')}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      a.status === 'submitted' ? 'bg-amber-100 text-amber-700' :
+                      a.status === 'approved' ? 'bg-green-100 text-green-700' :
+                      a.status === 'declined' ? 'bg-red-100 text-red-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {a.status}
+                    </span>
+                  </div>
+                ))}
+                {assessments.length === 0 && <p className="text-gray-400 text-sm">No assessments yet</p>}
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-[#0D6B5E]" />
+                  Recent Orders
+                </h3>
+                {orders.slice(0, 5).map(o => (
+                  <div key={o.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                    <div>
+                      <p className="text-sm font-medium">{o.profiles?.first_name} {o.profiles?.last_name}</p>
+                      <p className="text-xs text-gray-400">{formatPrice(o.total)}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      o.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                      o.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
+                      o.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {o.status}
+                    </span>
+                  </div>
+                ))}
+                {orders.length === 0 && <p className="text-gray-400 text-sm">No orders yet</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assessments Tab */}
+        {tab === 'assessments' && (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Patient</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Smoking</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Health Flags</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assessments.map(a => (
+                    <tr key={a.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium">{a.profiles?.first_name} {a.profiles?.last_name}</p>
+                        <p className="text-xs text-gray-400">{a.profiles?.phone}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm">{a.cigarettes_per_day} cigs/day</p>
+                        <p className="text-xs text-gray-400">{a.smoking_years} years</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-1">
+                          {a.pregnancy_status && a.pregnancy_status !== 'not_pregnant' && a.pregnancy_status !== 'na' && (
+                            <span className="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Pregnancy</span>
+                          )}
+                          {a.cardiovascular_conditions && (
+                            <span className="px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">CVD</span>
+                          )}
+                          {!a.pregnancy_status && !a.cardiovascular_conditions && (
+                            <span className="text-xs text-gray-400">None flagged</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(a.created_at).toLocaleDateString('en-AU')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                          a.status === 'submitted' ? 'bg-amber-100 text-amber-700' :
+                          a.status === 'approved' ? 'bg-green-100 text-green-700' :
+                          a.status === 'declined' ? 'bg-red-100 text-red-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {a.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => { setSelectedAssessment(a); setPharmacistNotes(a.pharmacist_notes || '') }}
+                          className="text-[#0D6B5E] hover:underline text-sm font-medium"
+                        >
+                          Review
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {assessments.length === 0 && (
+              <div className="text-center py-12 text-gray-400">No assessments found.</div>
+            )}
+          </div>
+        )}
+
+        {/* Orders Tab */}
+        {tab === 'orders' && (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Order</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Customer</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Total</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(o => (
+                    <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-mono text-gray-500">{o.id.slice(0, 8)}...</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium">{o.profiles?.first_name} {o.profiles?.last_name}</p>
+                        <p className="text-xs text-gray-400">{o.profiles?.phone}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold">{formatPrice(o.total)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(o.created_at).toLocaleDateString('en-AU')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                          o.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          o.status === 'pharmacist_review' ? 'bg-blue-100 text-blue-700' :
+                          o.status === 'dispensed' ? 'bg-purple-100 text-purple-700' :
+                          o.status === 'shipped' ? 'bg-cyan-100 text-cyan-700' :
+                          o.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {o.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => { setSelectedOrder(o); setPharmacistNotes(o.pharmacist_notes || '') }}
+                          className="text-[#0D6B5E] hover:underline text-sm font-medium"
+                        >
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {orders.length === 0 && (
+              <div className="text-center py-12 text-gray-400">No orders found.</div>
+            )}
+          </div>
+        )}
+
+        {/* Customers Tab */}
+        {tab === 'customers' && (
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
+            <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p className="font-medium text-gray-500">Customer Management</p>
+            <p className="text-sm mt-1">View and manage customer profiles, assessment history, and orders.</p>
+            <p className="text-xs mt-4">Coming soon — use Supabase dashboard for now.</p>
+          </div>
+        )}
       </div>
 
-      {/* Consultation Detail Modal */}
-      {selectedConsultation && (
+      {/* Assessment Review Modal */}
+      {selectedAssessment && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-charcoal">
-                Consultation Details
-              </h2>
-              <button
-                onClick={() => setSelectedConsultation(null)}
-                className="w-8 h-8 rounded-full bg-sage/10 flex items-center justify-center hover:bg-sage/20 transition-colors"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Assessment Review</h2>
+              <button onClick={() => setSelectedAssessment(null)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-charcoal/50">Name</span>
-                  <p className="font-medium">
-                    {selectedConsultation.firstName}{" "}
-                    {selectedConsultation.lastName}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-charcoal/50">Email</span>
-                  <p className="font-medium">{selectedConsultation.email}</p>
-                </div>
-                <div>
-                  <span className="text-charcoal/50">Phone</span>
-                  <p className="font-medium">{selectedConsultation.phone}</p>
-                </div>
-                <div>
-                  <span className="text-charcoal/50">Status</span>
-                  <p className="font-medium capitalize">
-                    {selectedConsultation.smokingStatus}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-charcoal/50">Duration</span>
-                  <p className="font-medium">
-                    {selectedConsultation.yearsUsing} years
-                  </p>
-                </div>
-                <div>
-                  <span className="text-charcoal/50">Daily Usage</span>
-                  <p className="font-medium">
-                    {selectedConsultation.dailyUsage}/day
-                  </p>
+            <div className="p-6 space-y-6">
+              {/* Patient info */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Patient</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-gray-400">Name:</span> {selectedAssessment.profiles?.first_name} {selectedAssessment.profiles?.last_name}</div>
+                  <div><span className="text-gray-400">Phone:</span> {selectedAssessment.profiles?.phone}</div>
+                  <div><span className="text-gray-400">DOB:</span> {selectedAssessment.profiles?.date_of_birth}</div>
                 </div>
               </div>
 
-              {selectedConsultation.previousQuitAttempts && (
-                <div className="text-sm">
-                  <span className="text-charcoal/50">
-                    Previous Quit Attempts
-                  </span>
-                  <p className="font-medium">
-                    {selectedConsultation.previousQuitAttempts}
-                  </p>
+              {/* Smoking history */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Smoking History</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-gray-400">Years smoking:</span> {selectedAssessment.smoking_years}</div>
+                  <div><span className="text-gray-400">Cigarettes/day:</span> {selectedAssessment.cigarettes_per_day}</div>
+                  <div className="col-span-2"><span className="text-gray-400">Previous attempts:</span> {selectedAssessment.previous_quit_attempts || 'None'}</div>
+                  <div className="col-span-2"><span className="text-gray-400">Current NRT:</span> {selectedAssessment.current_nicotine_use || 'None'}</div>
                 </div>
-              )}
+              </div>
 
-              {selectedConsultation.medicalConditions && (
-                <div className="text-sm">
-                  <span className="text-charcoal/50">
-                    Medical Conditions
-                  </span>
-                  <p className="font-medium">
-                    {selectedConsultation.medicalConditions}
-                  </p>
+              {/* Health */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Health</h3>
+                <div className="text-sm space-y-2">
+                  {selectedAssessment.pregnancy_status && selectedAssessment.pregnancy_status !== 'not_pregnant' && selectedAssessment.pregnancy_status !== 'na' && (
+                    <div className="flex items-center gap-2 text-red-600">
+                      <AlertTriangle className="w-4 h-4" /> {selectedAssessment.pregnancy_status === 'pregnant' ? 'Pregnant' : selectedAssessment.pregnancy_status === 'breastfeeding' ? 'Breastfeeding' : 'Planning pregnancy'}
+                    </div>
+                  )}
+                  {selectedAssessment.cardiovascular_conditions && (
+                    <div className="flex items-center gap-2 text-orange-600">
+                      <AlertTriangle className="w-4 h-4" /> Cardiovascular conditions
+                    </div>
+                  )}
+                  <div><span className="text-gray-400">Conditions:</span> {selectedAssessment.health_conditions?.join(', ') || 'None'}</div>
+                  <div><span className="text-gray-400">Medications:</span> {selectedAssessment.medications || 'None'}</div>
                 </div>
-              )}
+              </div>
 
-              <div className="pt-4 border-t border-sage/10">
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  Update Status
+              {/* Preferences */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Quit Plan</h3>
+                <div className="text-sm space-y-1">
+                  <div><span className="text-gray-400">Motivation:</span> {selectedAssessment.quit_motivation}</div>
+                  <div><span className="text-gray-400">Flavour preference:</span> {selectedAssessment.flavour_preference}</div>
+                </div>
+              </div>
+
+              {/* Pharmacist notes */}
+              <div>
+                <label className="text-sm font-semibold text-gray-500 uppercase block mb-2">
+                  <MessageSquare className="w-4 h-4 inline mr-1" />
+                  Pharmacist Notes
                 </label>
-                <div className="flex gap-2">
-                  {["pending", "scheduled", "completed"].map((s) => (
+                <textarea
+                  value={pharmacistNotes}
+                  onChange={e => setPharmacistNotes(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0D6B5E]/30 focus:border-[#0D6B5E] resize-none text-sm"
+                  placeholder="Clinical notes, recommendations..."
+                />
+              </div>
+
+              {selectedAssessment.status === 'submitted' && (
+                <>
+                  <div>
+                    <label className="text-sm text-gray-500 block mb-2">Decline reason (if declining)</label>
+                    <input
+                      value={declineReason}
+                      onChange={e => setDeclineReason(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0D6B5E]/30 focus:border-[#0D6B5E] text-sm"
+                      placeholder="Reason for declining..."
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
                     <button
-                      key={s}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all capitalize ${
-                        selectedConsultation.status === s
-                          ? "bg-primary text-white"
-                          : "bg-sage/10 text-charcoal/60 hover:bg-sage/20"
-                      }`}
+                      onClick={() => updateAssessmentStatus(selectedAssessment.id, 'approved')}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all"
                     >
-                      {s}
+                      <Check className="w-4 h-4" /> Approve
                     </button>
-                  ))}
+                    <button
+                      onClick={() => updateAssessmentStatus(selectedAssessment.id, 'needs_info')}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all"
+                    >
+                      <MessageSquare className="w-4 h-4" /> Request Info
+                    </button>
+                    <button
+                      onClick={() => updateAssessmentStatus(selectedAssessment.id, 'declined')}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-all"
+                    >
+                      <X className="w-4 h-4" /> Decline
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Management Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Order Details</h2>
+              <button onClick={() => setSelectedOrder(null)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Customer</h3>
+                <p className="text-sm">{selectedOrder.profiles?.first_name} {selectedOrder.profiles?.last_name}</p>
+                <p className="text-sm text-gray-400">{selectedOrder.profiles?.phone}</p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Shipping Address</h3>
+                <p className="text-sm">
+                  {selectedOrder.shipping_address?.street}<br />
+                  {selectedOrder.shipping_address?.suburb} {selectedOrder.shipping_address?.state} {selectedOrder.shipping_address?.postcode}
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Items</h3>
+                {selectedOrder.order_items?.map(item => (
+                  <div key={item.id} className="flex justify-between py-2 border-b border-gray-50 text-sm">
+                    <span>{item.products?.name} × {item.quantity}</span>
+                    <span className="font-medium">{formatPrice(item.unit_price * item.quantity)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between py-2 text-sm">
+                  <span className="text-gray-400">Shipping</span>
+                  <span>{selectedOrder.shipping_cost === 0 ? 'FREE' : formatPrice(selectedOrder.shipping_cost)}</span>
                 </div>
+                <div className="flex justify-between py-2 font-semibold">
+                  <span>Total</span>
+                  <span>{formatPrice(selectedOrder.total)}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-gray-500 uppercase block mb-2">Pharmacist Notes</label>
+                <textarea
+                  value={pharmacistNotes}
+                  onChange={e => setPharmacistNotes(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0D6B5E]/30 focus:border-[#0D6B5E] resize-none text-sm"
+                  placeholder="Clinical check notes, dispensing notes..."
+                />
+              </div>
+
+              {selectedOrder.tracking_number && (
+                <div className="text-sm">
+                  <span className="text-gray-400">Tracking:</span>{' '}
+                  <span className="font-mono">{selectedOrder.tracking_number}</span>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                {selectedOrder.status === 'pending' && (
+                  <button
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'pharmacist_review')}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+                  >
+                    Start Review
+                  </button>
+                )}
+                {(selectedOrder.status === 'pending' || selectedOrder.status === 'pharmacist_review') && (
+                  <button
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'dispensed')}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                  >
+                    <PackageCheck className="w-4 h-4" /> Mark Dispensed
+                  </button>
+                )}
+                {selectedOrder.status === 'dispensed' && (
+                  <button
+                    onClick={() => {
+                      const tracking = prompt('Enter tracking number:')
+                      if (tracking) updateOrderStatus(selectedOrder.id, 'shipped', tracking)
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-700"
+                  >
+                    Mark Shipped
+                  </button>
+                )}
+                {selectedOrder.status === 'shipped' && (
+                  <button
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'delivered')}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700"
+                  >
+                    Mark Delivered
+                  </button>
+                )}
+                <button
+                  onClick={() => updateOrderStatus(selectedOrder.id, 'cancelled')}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-100 text-red-700 text-sm font-medium hover:bg-red-200"
+                >
+                  Cancel Order
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

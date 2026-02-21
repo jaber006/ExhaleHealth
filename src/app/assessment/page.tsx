@@ -67,8 +67,11 @@ export default function AssessmentPage() {
         health_conditions: healthConditions,
         medications: medications || null,
         quit_motivation: motivation || null,
-        preferred_nicotine_delivery: preferredDelivery || null,
-        pregnancy_status: healthConditions.includes('Pregnancy or breastfeeding'),
+        preferred_method: healthConditions.includes('Pregnancy or breastfeeding') ? 'nrt' : 
+          preferredDelivery === 'Therapeutic vape' ? 'therapeutic_vape' :
+          preferredDelivery === 'Combination' ? 'both' :
+          preferredDelivery === 'Not sure — need advice' ? 'unsure' : 'nrt',
+        pregnancy_status: healthConditions.includes('Pregnancy or breastfeeding') ? 'pregnant' : 'not_pregnant',
         cardiovascular_conditions: healthConditions.includes('Heart disease or cardiovascular conditions'),
         status: 'submitted',
       })
