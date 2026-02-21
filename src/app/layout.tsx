@@ -11,21 +11,19 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Exhale — Quit Smoking & Vaping | Online Pharmacy Australia",
+    default: "Exhale — Quit Smoking | Online Pharmacy Australia",
     template: "%s | Exhale",
   },
   description:
-    "Australia's online pharmacy for smoking cessation. Speak to an AHPRA-registered pharmacist and get NRT or therapeutic vapes delivered to your door.",
+    "Australia's online pharmacy for smoking cessation. Free assessment by an AHPRA-registered pharmacist. Evidence-based cessation products delivered to your door.",
   keywords: [
     "quit smoking",
-    "quit vaping",
     "NRT",
     "nicotine replacement therapy",
     "online pharmacy",
     "Australia",
-    "therapeutic vapes",
     "smoking cessation",
-    "pharmacist consultation",
+    "pharmacist",
   ],
   metadataBase: new URL("https://exhale.health"),
   openGraph: {
@@ -33,23 +31,23 @@ export const metadata: Metadata = {
     locale: "en_AU",
     url: "https://exhale.health",
     siteName: "Exhale",
-    title: "Exhale — Quit Smoking & Vaping | Online Pharmacy Australia",
+    title: "Exhale — Quit Smoking | Online Pharmacy Australia",
     description:
-      "Australia's online pharmacy for smoking cessation. Speak to an AHPRA-registered pharmacist and get NRT or therapeutic vapes delivered.",
+      "Australia's online pharmacy for smoking cessation. Free pharmacist assessment and evidence-based cessation products delivered to your door.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Exhale — Quit Smoking & Vaping",
+        alt: "Exhale — Quit Smoking",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Exhale — Quit Smoking & Vaping",
+    title: "Exhale — Quit Smoking",
     description:
-      "Australia's online pharmacy for smoking cessation. AHPRA-registered pharmacist consultations and NRT delivery.",
+      "Australia's online pharmacy for smoking cessation. Free pharmacist assessment and cessation products delivered Australia-wide.",
   },
   robots: {
     index: true,
@@ -77,7 +75,7 @@ export default function RootLayout({
                   name: "Exhale",
                   url: "https://exhale.health",
                   description:
-                    "Australia's online pharmacy for smoking cessation",
+                    "Australia's online pharmacy for smoking cessation products",
                   contactPoint: {
                     "@type": "ContactPoint",
                     contactType: "customer service",
@@ -99,7 +97,7 @@ export default function RootLayout({
                   name: "Exhale Pharmacy",
                   url: "https://exhale.health",
                   description:
-                    "AHPRA-registered online pharmacy specialising in smoking and vaping cessation",
+                    "AHPRA-registered online pharmacy specialising in smoking cessation",
                   medicalSpecialty: "Pharmacy",
                   priceRange: "$$",
                   areaServed: {

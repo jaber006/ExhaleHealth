@@ -35,16 +35,10 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link
-              href="/products"
+              href="/#how-it-works"
               className="text-charcoal/70 hover:text-primary transition-colors font-medium"
             >
-              Products
-            </Link>
-            <Link
-              href="/book"
-              className="text-charcoal/70 hover:text-primary transition-colors font-medium"
-            >
-              Book Consultation
+              How It Works
             </Link>
             <Link
               href="/about"
@@ -53,13 +47,13 @@ export function Navbar() {
               About
             </Link>
             <Link
-              href="/blog"
+              href="/login"
               className="text-charcoal/70 hover:text-primary transition-colors font-medium"
             >
-              Blog
+              Sign In
             </Link>
             <Link
-              href="/book"
+              href="/register"
               className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-full font-medium transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95"
             >
               Get Started
@@ -102,18 +96,11 @@ export function Navbar() {
           <div className="md:hidden pb-6 animate-slide-down">
             <div className="flex flex-col gap-1">
               <Link
-                href="/products"
+                href="/#how-it-works"
                 onClick={() => setIsOpen(false)}
                 className="px-4 py-3 rounded-lg text-charcoal/70 hover:text-primary hover:bg-sage/10 transition-all font-medium"
               >
-                Products
-              </Link>
-              <Link
-                href="/book"
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-3 rounded-lg text-charcoal/70 hover:text-primary hover:bg-sage/10 transition-all font-medium"
-              >
-                Book Consultation
+                How It Works
               </Link>
               <Link
                 href="/about"
@@ -123,15 +110,15 @@ export function Navbar() {
                 About
               </Link>
               <Link
-                href="/blog"
+                href="/login"
                 onClick={() => setIsOpen(false)}
                 className="px-4 py-3 rounded-lg text-charcoal/70 hover:text-primary hover:bg-sage/10 transition-all font-medium"
               >
-                Blog
+                Sign In
               </Link>
               <div className="mt-2 px-4">
                 <Link
-                  href="/book"
+                  href="/register"
                   onClick={() => setIsOpen(false)}
                   className="block w-full text-center bg-primary hover:bg-primary-dark text-white px-5 py-3 rounded-full font-medium transition-all"
                 >

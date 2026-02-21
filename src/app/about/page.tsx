@@ -4,9 +4,9 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about Exhale — Australia's trusted online pharmacy for smoking and vaping cessation. Meet our AHPRA-registered pharmacist Mohammad Jaber.",
+    "Learn about Exhale — Australia's trusted online pharmacy for smoking cessation. Meet our AHPRA-registered pharmacist Mohammad Jaber.",
   openGraph: {
-    title: "About Exhale | Quit Smoking & Vaping",
+    title: "About Exhale | Quit Smoking",
     description:
       "Learn about our mission, our pharmacist, and why pharmacy-led cessation works.",
   },
@@ -23,8 +23,8 @@ export default function AboutPage() {
               About Exhale
             </h1>
             <p className="mt-4 text-charcoal/60 text-lg">
-              Helping Australians quit smoking and vaping through professional
-              pharmacy care, personalised support, and evidence-based products.
+              Helping Australians quit smoking through professional pharmacy
+              care, personalised support, and evidence-based cessation products.
             </p>
           </div>
         </div>
@@ -43,23 +43,23 @@ export default function AboutPage() {
               </h2>
               <div className="mt-6 space-y-4 text-charcoal/70 leading-relaxed">
                 <p>
-                  Smoking kills over 20,000 Australians every year. Vaping has
-                  become an epidemic among young people. We believe everyone
-                  deserves access to professional support on their quit journey —
-                  not just those who can visit a pharmacy during business hours.
+                  Smoking kills over 20,000 Australians every year. We believe
+                  everyone deserves access to professional support on their quit
+                  journey — not just those who can visit a pharmacy during
+                  business hours.
                 </p>
                 <p>
                   Exhale was founded to bridge this gap. We combine the
-                  expertise of AHPRA-registered pharmacists with the
-                  convenience of telehealth, making it easier than ever for
-                  Australians to access evidence-based smoking and vaping
-                  cessation support.
+                  expertise of an AHPRA-registered pharmacist with the
+                  convenience of an online service, making it easier than ever
+                  for Australians to access evidence-based smoking cessation
+                  support.
                 </p>
                 <p>
-                  Whether you&apos;ve been smoking for decades or started vaping
-                  recently, our pharmacist works with you to create a
-                  personalised quit plan using proven NRT products and, where
-                  appropriate, TGA-approved therapeutic vapes.
+                  Whether you&apos;ve been smoking for decades or are just
+                  starting your quit journey, our pharmacist works with you to
+                  create a personalised quit plan using proven cessation
+                  products delivered to your door.
                 </p>
               </div>
             </div>
@@ -167,15 +167,15 @@ export default function AboutPage() {
 
               <div className="mt-6 space-y-4 text-charcoal/70 leading-relaxed">
                 <p>
-                  Mohammad is an AHPRA-registered pharmacist with extensive
-                  experience in smoking cessation and community pharmacy. He is
-                  passionate about helping patients quit smoking and vaping through
-                  evidence-based approaches.
+                  Mohammad is an AHPRA-registered pharmacist with experience in
+                  smoking cessation and community pharmacy. He is passionate
+                  about helping patients quit smoking through evidence-based
+                  approaches.
                 </p>
                 <p>
                   With a deep understanding of nicotine dependence and the
                   challenges of quitting, Mohammad provides compassionate,
-                  non-judgemental consultations tailored to each patient&apos;s
+                  non-judgemental assessments tailored to each patient&apos;s
                   unique circumstances and goals.
                 </p>
                 <p>
@@ -185,17 +185,11 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl p-4 border border-sage/10">
-                  <div className="text-2xl font-bold text-primary">500+</div>
-                  <div className="text-charcoal/60 text-sm">
-                    Patients Supported
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl p-4 border border-sage/10">
+              <div className="mt-8">
+                <div className="bg-white rounded-xl p-4 border border-sage/10 inline-block">
                   <div className="text-2xl font-bold text-primary">AHPRA</div>
                   <div className="text-charcoal/60 text-sm">
-                    Fully Registered
+                    Fully Registered — PHA0002147134
                   </div>
                 </div>
               </div>
@@ -232,7 +226,7 @@ export default function AboutPage() {
               {
                 title: "Personalised Plans",
                 description:
-                  "No two quit journeys are the same. Your pharmacist creates a step-down plan tailored to your smoking or vaping history and health profile.",
+                  "No two quit journeys are the same. Your pharmacist creates a step-down plan tailored to your smoking history and health profile.",
                 icon: (
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -253,7 +247,7 @@ export default function AboutPage() {
               {
                 title: "TGA Compliance",
                 description:
-                  "All our products are TGA-approved. Therapeutic vapes are dispensed only through proper pharmaceutical channels with pharmacist oversight.",
+                  "All cessation products are supplied in accordance with TGA regulations. Therapeutic goods are dispensed only through proper pharmaceutical channels with pharmacist oversight.",
                 icon: (
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -325,7 +319,7 @@ export default function AboutPage() {
               {
                 title: "TGA Compliant",
                 description:
-                  "All therapeutic goods are supplied in compliance with the Therapeutic Goods Administration regulations, including the October 2024 vaping reforms.",
+                  "All therapeutic goods are supplied in compliance with the Therapeutic Goods Administration regulations and current pharmaceutical standards.",
               },
               {
                 title: "Privacy Protected",
@@ -378,10 +372,10 @@ export default function AboutPage() {
             every step of the way.
           </p>
           <Link
-            href="/book"
+            href="/register"
             className="inline-flex items-center bg-white text-primary font-semibold px-8 py-4 rounded-full hover:bg-sage-light transition-all hover:shadow-xl active:scale-95 text-lg"
           >
-            Book Your Consultation
+            Get Started — Free
           </Link>
         </div>
       </section>

@@ -18,7 +18,7 @@ export function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
@@ -41,9 +41,9 @@ export function Footer() {
               </svg>
             </Link>
             <p className="text-white/60 text-sm leading-relaxed">
-              Australia&apos;s trusted online pharmacy for smoking and vaping
-              cessation. AHPRA-registered pharmacist consultations and NRT
-              delivery.
+              Australia&apos;s trusted online pharmacy for smoking cessation.
+              AHPRA-registered pharmacist assessments and evidence-based
+              cessation products delivered to your door.
             </p>
           </div>
 
@@ -53,18 +53,10 @@ export function Footer() {
             <ul className="space-y-2.5">
               <li>
                 <Link
-                  href="/products"
+                  href="/#how-it-works"
                   className="text-white/60 hover:text-sage transition-colors text-sm"
                 >
-                  Products
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/book"
-                  className="text-white/60 hover:text-sage transition-colors text-sm"
-                >
-                  Book Consultation
+                  How It Works
                 </Link>
               </li>
               <li>
@@ -77,49 +69,18 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/blog"
+                  href="/register"
                   className="text-white/60 hover:text-sage transition-colors text-sm"
                 >
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Products */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Products</h3>
-            <ul className="space-y-2.5">
-              <li>
-                <Link
-                  href="/products?category=patches"
-                  className="text-white/60 hover:text-sage transition-colors text-sm"
-                >
-                  NRT Patches
+                  Get Started
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/products?category=gum"
+                  href="/login"
                   className="text-white/60 hover:text-sage transition-colors text-sm"
                 >
-                  Gum & Lozenges
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products?category=spray"
-                  className="text-white/60 hover:text-sage transition-colors text-sm"
-                >
-                  Sprays & Inhalers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products?category=vape"
-                  className="text-white/60 hover:text-sage transition-colors text-sm"
-                >
-                  Therapeutic Vapes
+                  Sign In
                 </Link>
               </li>
             </ul>
@@ -127,22 +88,14 @@ export function Footer() {
 
           {/* Contact & Legal */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Contact</h3>
+            <h3 className="text-white font-semibold mb-4">Contact & Legal</h3>
             <ul className="space-y-2.5">
               <li className="text-white/60 text-sm">
                 <a
-                  href="mailto:hello@exhale.health"
+                  href="mailto:mohammad@exhale.health"
                   className="hover:text-sage transition-colors"
                 >
-                  hello@exhale.health
-                </a>
-              </li>
-              <li className="text-white/60 text-sm">
-                <a
-                  href="tel:1300123456"
-                  className="hover:text-sage transition-colors"
-                >
-                  1300 123 456
+                  mohammad@exhale.health
                 </a>
               </li>
               <li className="text-white/60 text-sm mt-4">
@@ -165,8 +118,19 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Quitline */}
+        <div className="mt-10 p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+          <p className="text-white/60 text-sm">
+            Need support? Call{" "}
+            <a href="tel:137848" className="text-sage font-semibold hover:text-white transition-colors">
+              Quitline 13 78 48
+            </a>{" "}
+            — free, confidential smoking cessation support.
+          </p>
+        </div>
+
         {/* Compliance Bar */}
-        <div className="mt-12 pt-8 border-t border-white/10">
+        <div className="mt-8 pt-8 border-t border-white/10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-white/40">
               <span className="flex items-center gap-1.5">
@@ -185,19 +149,17 @@ export function Footer() {
               </span>
               <span>•</span>
               <span>TGA Compliant</span>
-              <span>•</span>
-              <span>ABN: XX XXX XXX XXX</span>
             </div>
             <p className="text-xs text-white/40">
               © {new Date().getFullYear()} Exhale. All rights reserved.
             </p>
           </div>
           <p className="mt-4 text-center text-xs text-white/30 max-w-3xl mx-auto">
-            Exhale is an online pharmacy service. All consultations are conducted
-            by AHPRA-registered pharmacists. Therapeutic vaping products require a
-            valid consultation and are dispensed in accordance with TGA
-            regulations. This website does not provide medical advice. Always seek
-            the guidance of a qualified health professional.
+            Exhale is an online pharmacy service operated by an AHPRA-registered
+            pharmacist. Cessation products are supplied following a pharmacist
+            assessment in accordance with TGA regulations. This website does not
+            provide medical advice. Always seek the guidance of a qualified health
+            professional.
           </p>
         </div>
       </div>
