@@ -41,7 +41,7 @@ export function Navbar() {
               height="16"
               viewBox="0 0 24 16"
               fill="none"
-              className="text-[#8FBC8F] group-hover:text-[#0D6B5E] transition-colors"
+              className="text-[#8FBC8F] group-hover:text-[#0D6B5E] transition-colors animate-wave"
             >
               <path
                 d="M1 8C4 3 8 13 12 8C16 3 20 13 23 8"

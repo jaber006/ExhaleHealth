@@ -155,7 +155,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <span className="text-3xl font-light tracking-tight text-[#0D6B5E]">exhale</span>
-            <svg width="24" height="16" viewBox="0 0 24 16" fill="none" className="text-[#8FBC8F]">
+            <svg width="24" height="16" viewBox="0 0 24 16" fill="none" className="text-[#8FBC8F] animate-wave">
               <path d="M1 8C4 3 8 13 12 8C16 3 20 13 23 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </Link>
