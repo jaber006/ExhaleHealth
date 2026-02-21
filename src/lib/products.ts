@@ -1,107 +1,247 @@
-export type ProductCategory = 'nrt' | 'therapeutic-vape' | 'support'
+// Hardcoded product catalogue for v1 — will move to Supabase later
+// Prices in cents (AUD)
+
+export type ProductCategory = 'therapeutic_vapes' | 'nrt_gum' | 'nrt_patches' | 'nrt_lozenges'
 
 export interface Product {
   id: string
   name: string
-  brand?: string
+  brand: string
+  category: ProductCategory
+  type: string
+  nicotine_strength_mg: number | null
+  flavour: string | null
   description: string
   price: number // cents
-  category: ProductCategory
-  type?: string
-  flavour?: string
-  schedule?: 's3' | 'none'
-  nicotine_strength_mg?: number
-  badge?: string
-  image?: string
+  schedule: 's3' | 'none'
+  requires_auth: boolean
   in_stock: boolean
-  inStock?: boolean
-  requiresAssessment: boolean
+  badge?: string
 }
 
-export const SHIPPING_THRESHOLD = 10000 // $100 in cents
-export const SHIPPING_COST = 1290 // $12.90
-
-export const TGA_DISCLAIMER = `All nicotine vaping products are listed on the Therapeutic Goods Administration (TGA) notified list. Currently, no nicotine vaping products in Australia are registered in the Australian Register of Therapeutic Goods (ARTG). Medicines not in the ARTG are known as 'unapproved' medicines. The TGA has not assessed these medicines for safety, quality and efficacy.
-
-There are various smoking cessation aids registered in the ARTG, including many first-line NRTs and some prescription medicines, which the TGA has assessed for safety, quality and efficacy.
-
-For more information: https://www.tga.gov.au/products/unapproved-therapeutic-goods/vaping-hub`
-
-export const productCategories: { id: ProductCategory; value: ProductCategory; label: string }[] = [
-  { id: 'nrt', value: 'nrt', label: 'NRT Products' },
-  { id: 'therapeutic-vape', value: 'therapeutic-vape', label: 'Therapeutic Vapes' },
-  { id: 'support', value: 'support', label: 'Quit Support' },
-]
-
-// Placeholder products — will be replaced with Supabase data
 export const products: Product[] = [
+  // ── Therapeutic Vapes (S3 — BEHIND AUTH WALL) ─────────────────────
   {
-    id: 'nrt-patch-01',
-    name: 'Nicotine Patch 21mg',
-    brand: 'Nicotinell',
-    description: 'Step 1 transdermal nicotine patch. 24-hour sustained release.',
-    price: 3495,
-    category: 'nrt',
-    in_stock: true,
-    requiresAssessment: false,
-  },
-  {
-    id: 'nrt-gum-01',
-    name: 'Nicotine Gum 4mg',
-    brand: 'Nicotinell',
-    description: 'Sugar-free nicotine gum. Relieves cravings in minutes.',
-    price: 1995,
-    category: 'nrt',
-    in_stock: true,
-    requiresAssessment: false,
-  },
-  {
-    id: 'nrt-lozenge-01',
-    name: 'Nicotine Lozenge 2mg',
-    brand: 'Nicotinell',
-    description: 'Discreet oral nicotine replacement. Dissolves slowly.',
-    price: 1795,
-    category: 'nrt',
-    in_stock: true,
-    requiresAssessment: false,
-  },
-  {
-    id: 'tv-device-01',
-    name: 'Therapeutic Vape Device',
-    brand: 'LANAVAPE',
-    description: 'TGA-notified closed-system device for smoking cessation.',
-    price: 4995,
-    category: 'therapeutic-vape',
+    id: 'wbi-mint-20',
+    name: 'Wild by Instinct Mint 20mg',
+    brand: 'Wild by Instinct',
+    category: 'therapeutic_vapes',
+    type: 'pod',
+    nicotine_strength_mg: 20,
+    flavour: 'Mint',
+    description: 'Closed pod system. 20mg/mL nicotine salt. Cool mint flavour. TGA notified.',
+    price: 2499,
     schedule: 's3',
+    requires_auth: true,
     in_stock: true,
-    requiresAssessment: true,
   },
   {
-    id: 'tv-pod-tobacco-01',
-    name: 'Tobacco Flavour Pod 20mg/mL',
-    brand: 'LANAVAPE',
-    description: 'Nicotine e-liquid pod. 20mg/mL concentration. TGA notified.',
-    price: 1995,
-    category: 'therapeutic-vape',
-    schedule: 's3',
+    id: 'wbi-tobacco-20',
+    name: 'Wild by Instinct Tobacco 20mg',
+    brand: 'Wild by Instinct',
+    category: 'therapeutic_vapes',
+    type: 'pod',
     nicotine_strength_mg: 20,
     flavour: 'Tobacco',
+    description: 'Closed pod system. 20mg/mL nicotine salt. Classic tobacco flavour. TGA notified.',
+    price: 2499,
+    schedule: 's3',
+    requires_auth: true,
     in_stock: true,
-    requiresAssessment: true,
   },
   {
-    id: 'tv-pod-mint-01',
-    name: 'Mint Flavour Pod 10mg/mL',
-    brand: 'LANAVAPE',
-    description: 'Nicotine e-liquid pod. 10mg/mL concentration. TGA notified.',
-    price: 1995,
-    category: 'therapeutic-vape',
+    id: 'wbi-menthol-12',
+    name: 'Wild by Instinct Menthol 12mg',
+    brand: 'Wild by Instinct',
+    category: 'therapeutic_vapes',
+    type: 'pod',
+    nicotine_strength_mg: 12,
+    flavour: 'Menthol',
+    description: 'Closed pod system. 12mg/mL nicotine salt for step-down therapy. TGA notified.',
+    price: 2299,
     schedule: 's3',
-    nicotine_strength_mg: 10,
-    flavour: 'Mint',
+    requires_auth: true,
     in_stock: true,
-    requiresAssessment: true,
   },
+  {
+    id: 'wbi-device',
+    name: 'Wild by Instinct Device Kit',
+    brand: 'Wild by Instinct',
+    category: 'therapeutic_vapes',
+    type: 'device',
+    nicotine_strength_mg: null,
+    flavour: null,
+    description: 'Rechargeable closed pod device. Includes USB-C charger. Compatible with all WBI pods.',
+    price: 3999,
+    schedule: 's3',
+    requires_auth: true,
+    in_stock: true,
+    badge: 'Starter Kit',
+  },
+  {
+    id: 'lana-mint-20',
+    name: 'LANAVAPE Mint 20mg',
+    brand: 'LANAVAPE',
+    category: 'therapeutic_vapes',
+    type: 'pod',
+    nicotine_strength_mg: 20,
+    flavour: 'Mint',
+    description: 'Closed pod system. 20mg/mL nicotine. Refreshing mint. TGA notified.',
+    price: 2499,
+    schedule: 's3',
+    requires_auth: true,
+    in_stock: true,
+  },
+  {
+    id: 'lana-tobacco-20',
+    name: 'LANAVAPE Tobacco 20mg',
+    brand: 'LANAVAPE',
+    category: 'therapeutic_vapes',
+    type: 'pod',
+    nicotine_strength_mg: 20,
+    flavour: 'Tobacco',
+    description: 'Closed pod system. 20mg/mL nicotine. Smooth tobacco. TGA notified.',
+    price: 2499,
+    schedule: 's3',
+    requires_auth: true,
+    in_stock: true,
+  },
+  {
+    id: 'lana-device',
+    name: 'LANAVAPE Device Kit',
+    brand: 'LANAVAPE',
+    category: 'therapeutic_vapes',
+    type: 'device',
+    nicotine_strength_mg: null,
+    flavour: null,
+    description: 'Rechargeable closed pod device with LED indicator. USB-C charging.',
+    price: 3499,
+    schedule: 's3',
+    requires_auth: true,
+    in_stock: true,
+    badge: 'Starter Kit',
+  },
+
+  // ── NRT Products (ARTG Registered — Can show publicly) ───────────
+  {
+    id: 'ntell-gum-mint-4',
+    name: 'Nicotinell Gum Mint 4mg',
+    brand: 'Nicotinell',
+    category: 'nrt_gum',
+    type: 'nrt_gum',
+    nicotine_strength_mg: 4,
+    flavour: 'Mint',
+    description: 'Sugar-free nicotine gum for heavy smokers (20+ cigarettes/day). 96 pieces.',
+    price: 3699,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+  {
+    id: 'ntell-gum-mint-2',
+    name: 'Nicotinell Gum Mint 2mg',
+    brand: 'Nicotinell',
+    category: 'nrt_gum',
+    type: 'nrt_gum',
+    nicotine_strength_mg: 2,
+    flavour: 'Mint',
+    description: 'Sugar-free nicotine gum for light-moderate smokers (<20 cigarettes/day). 96 pieces.',
+    price: 3499,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+  {
+    id: 'ntell-gum-fruit-4',
+    name: 'Nicotinell Gum Fruit 4mg',
+    brand: 'Nicotinell',
+    category: 'nrt_gum',
+    type: 'nrt_gum',
+    nicotine_strength_mg: 4,
+    flavour: 'Fruit',
+    description: 'Fruit-flavoured nicotine gum for heavy smokers. Sugar-free. 96 pieces.',
+    price: 3699,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+  {
+    id: 'ntell-patch-21',
+    name: 'Nicotinell Patch 21mg Step 1',
+    brand: 'Nicotinell',
+    category: 'nrt_patches',
+    type: 'nrt_patch',
+    nicotine_strength_mg: 21,
+    flavour: null,
+    description: '24-hour transdermal nicotine patch. Step 1 for heavy smokers (20+ cigarettes/day). 7 patches.',
+    price: 3299,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+  {
+    id: 'ntell-patch-14',
+    name: 'Nicotinell Patch 14mg Step 2',
+    brand: 'Nicotinell',
+    category: 'nrt_patches',
+    type: 'nrt_patch',
+    nicotine_strength_mg: 14,
+    flavour: null,
+    description: '24-hour transdermal nicotine patch. Step 2 for step-down therapy. 7 patches.',
+    price: 3099,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+  {
+    id: 'ntell-patch-7',
+    name: 'Nicotinell Patch 7mg Step 3',
+    brand: 'Nicotinell',
+    category: 'nrt_patches',
+    type: 'nrt_patch',
+    nicotine_strength_mg: 7,
+    flavour: null,
+    description: '24-hour transdermal nicotine patch. Step 3 — final step-down before stopping. 7 patches.',
+    price: 2899,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+  {
+    id: 'ntell-loz-mint-4',
+    name: 'Nicotinell Lozenge Mint 4mg',
+    brand: 'Nicotinell',
+    category: 'nrt_lozenges',
+    type: 'nrt_lozenge',
+    nicotine_strength_mg: 4,
+    flavour: 'Mint',
+    description: 'Sugar-free mint lozenges for heavy smokers. Dissolves slowly for steady relief. 36 lozenges.',
+    price: 2199,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+  {
+    id: 'ntell-loz-mint-2',
+    name: 'Nicotinell Lozenge Mint 2mg',
+    brand: 'Nicotinell',
+    category: 'nrt_lozenges',
+    type: 'nrt_lozenge',
+    nicotine_strength_mg: 2,
+    flavour: 'Mint',
+    description: 'Sugar-free mint lozenges for light-moderate smokers. 36 lozenges.',
+    price: 1999,
+    schedule: 'none',
+    requires_auth: false,
+    in_stock: true,
+  },
+]
+
+export const productCategories: { id: ProductCategory; label: string; requiresAuth: boolean }[] = [
+  { id: 'therapeutic_vapes', label: 'Therapeutic Vapes', requiresAuth: true },
+  { id: 'nrt_gum', label: 'NRT Gum', requiresAuth: false },
+  { id: 'nrt_patches', label: 'NRT Patches', requiresAuth: false },
+  { id: 'nrt_lozenges', label: 'NRT Lozenges', requiresAuth: false },
 ]
 
 export function formatPrice(cents: number): string {
@@ -109,5 +249,14 @@ export function formatPrice(cents: number): string {
 }
 
 export function getProductById(id: string): Product | undefined {
-  return products.find((p) => p.id === id)
+  return products.find(p => p.id === id)
 }
+
+export const SHIPPING_THRESHOLD = 10000 // $100 in cents
+export const SHIPPING_COST = 1290 // $12.90 in cents
+
+export const TGA_DISCLAIMER = `All nicotine vaping products are listed on the Therapeutic Goods Administration (TGA) notified list. Currently, no nicotine vaping products in Australia are registered in the Australian Register of Therapeutic Goods (ARTG). Medicines not in the ARTG are known as 'unapproved' medicines. The TGA has not assessed these medicines for safety, quality and efficacy.
+
+There are various smoking cessation aids registered in the ARTG, including many first-line NRTs and some prescription medicines, which the TGA has assessed for safety, quality and efficacy.
+
+For more information: https://www.tga.gov.au/products/unapproved-therapeutic-goods/vaping-hub`

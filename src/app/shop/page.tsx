@@ -10,14 +10,14 @@ export default function ShopPage() {
   const [addedId, setAddedId] = useState<string | null>(null)
 
   const filtered = activeCategory === 'all'
-    ? products.filter(p => p.inStock)
-    : products.filter(p => p.category === activeCategory && p.inStock)
+    ? products.filter(p => p.in_stock)
+    : products.filter(p => p.category === activeCategory && p.in_stock)
 
-  const showVapeDisclaimer = activeCategory === 'all' || activeCategory === 'therapeutic-vape'
+  const showVapeDisclaimer = activeCategory === 'all' || activeCategory === 'therapeutic_vapes'
 
-  const handleAddToCart = (productId: string) => {
-    addToCart(productId)
-    setAddedId(productId)
+  const handleAddToCart = (product: (typeof products)[0]) => {
+    addToCart(product)
+    setAddedId(product.id)
     setTimeout(() => setAddedId(null), 2000)
   }
 
@@ -57,10 +57,10 @@ export default function ShopPage() {
           </button>
           {productCategories.map((cat) => (
             <button
-              key={cat.value}
-              onClick={() => setActiveCategory(cat.value)}
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                activeCategory === cat.value
+                activeCategory === cat.id
                   ? 'bg-[#0D6B5E] text-white'
                   : 'bg-white text-gray-600 border border-gray-200 hover:border-[#0D6B5E]/40'
               }`}
@@ -73,24 +73,32 @@ export default function ShopPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filtered.map((product) => (
             <div key={product.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#0D6B5E]/20 transition-all group">
-              <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+              <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative">
                 <div className="text-center px-4">
-                  {product.brand && <p className="text-gray-400 text-sm font-medium">{product.brand}</p>}
-                  <p className="text-gray-300 text-xs mt-1">{product.name}</p>
+                  <p className="text-gray-400 text-sm font-medium">{product.brand}</p>
+                  <p className="text-gray-300 text-xs mt-1">{product.flavour || product.type}</p>
                 </div>
+                {product.badge && (
+                  <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-[#0D6B5E] text-white text-xs font-medium">
+                    {product.badge}
+                  </span>
+                )}
+                {product.schedule === 's3' && (
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                    S3
+                  </span>
+                )}
               </div>
-
               <div className="p-5">
                 <h3 className="font-medium text-gray-900 text-sm leading-tight">{product.name}</h3>
                 {product.nicotine_strength_mg && (
                   <p className="text-xs text-gray-400 mt-1">{product.nicotine_strength_mg}mg/mL nicotine</p>
                 )}
                 <p className="text-xs text-gray-500 mt-2 leading-relaxed line-clamp-2">{product.description}</p>
-
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-lg font-semibold text-gray-900">{formatPrice(product.price)}</span>
                   <button
-                    onClick={() => handleAddToCart(product.id)}
+                    onClick={() => handleAddToCart(product)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                       addedId === product.id
                         ? 'bg-green-500 text-white'
@@ -104,10 +112,6 @@ export default function ShopPage() {
                     )}
                   </button>
                 </div>
-
-                {product.requiresAssessment && (
-                  <p className="text-xs text-amber-600 mt-2">Requires completed assessment</p>
-                )}
               </div>
             </div>
           ))}
@@ -122,8 +126,8 @@ export default function ShopPage() {
         <div className="mt-12 p-6 rounded-xl bg-[#0D6B5E]/5 border border-[#0D6B5E]/10 text-center">
           <p className="text-sm text-gray-600">
             Not sure what&apos;s right for you? Contact us at{' '}
-            <a href="mailto:support@exhale.health" className="text-[#0D6B5E] font-medium hover:underline">
-              support@exhale.health
+            <a href="mailto:mohammad@exhale.health" className="text-[#0D6B5E] font-medium hover:underline">
+              mohammad@exhale.health
             </a>
           </p>
         </div>
