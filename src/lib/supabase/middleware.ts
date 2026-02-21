@@ -48,15 +48,22 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Admin routes
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('redirect', '/admin')
+    return NextResponse.redirect(url)
+  }
+
   if (request.nextUrl.pathname.startsWith('/admin') && user) {
     // Check if user is admin (pharmacist)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('is_admin')
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (!profile?.is_admin) {
       const url = request.nextUrl.clone()
       url.pathname = '/'
       return NextResponse.redirect(url)
